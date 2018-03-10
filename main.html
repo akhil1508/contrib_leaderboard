@@ -7,52 +7,93 @@
 
 <body>
   <div id="app">
-    <div v-if="!removeRepoOption" id="repoForm">
-      <h3 class="title is-3 has-text-centered">Set Repo Options</h3>
-      <div class="field">
-        <label class="label">Repository Name:</label>
-        <input class="input" v-model="repoName" placeholder="Name of Repository">
+    <div id="formAndButtons">
+      <div v-if="!removeRepoOption" id="repoForm">
+        <h3 class="title is-3 has-text-centered">Set Repo Options</h3>
+        <div class="field">
+          <label class="label">Repository Name:</label>
+          <input class="input" v-model="repoName" placeholder="Name of Repository">
+        </div>
+        <div class="field">
+          <label class="label">Owner Name:</label>
+          <input class="input" v-model="userName" placeholder="Name of Owner">
+        </div>
       </div>
-      <div class="field">
-        <label class="label">Owner Name:</label>
-        <input class="input" v-model="userName" placeholder="Name of Owner">
+      <div id="allTheButtons">
+        <button v-if="contributors.length > 0" @click="getRepoContributors" class="button is-success">Refresh Leaderboard</button>
+        <button v-if="!contributors.length > 0" @click="getRepoContributors" class="button is-success">Display Leaderboard</button>
+
+        <button v-if="!removeRepoOption && contributors.length > 0" @click="removeRepoOption = true" class="button is-danger">
+          Remove Repo options
+        </button>
+        <button v-if="removeRepoOption" @click="removeRepoOption = false" class="button is-primary">Show Repo Options</button>
+        <button v-if="!showPullRequests" @click="getPullRequests" class="button is-success">Show Pull Requests</button>
+        <button v-if="showPullRequests && (pullRequests.length > 0)" @click="getPullRequests" class="button is-primary">Refresh Pull Requests</button>
+        <button v-if="showPullRequests" @click="showPullRequests= false" class="button is-danger">Hide Pull Requests</button>
       </div>
     </div>
-    <div id="allTheButtons">
-      <button v-if="contributors.length > 0" @click="getRepoContributors" class="button">Refresh Leaderboard</button>
-      <button v-if="!contributors.length > 0" @click="getRepoContributors" class="button">Display Leaderboard</button>
 
-      <button v-if="!removeRepoOption && contributors.length > 0" @click="removeRepoOption = true" class="button">
-        Remove Repo options
-      </button>
-      <button v-if="removeRepoOption" @click="removeRepoOption = false" class="button">Show Repo Options</button>
-    </div>
-    <div id="leaderboardTable" v-if="contributors.length > 0">
-      <h3 class="title is-3 has-text-centered">{{repoName}}</h3>
-      <h5 class="subtitle is-5 has-text-centered">Owner: {{userName}}</h5>
-      <table class="table is-bordered is-hoverable">
-        <thead>
-          <tr>
-            <th>Avatar</th>
-            <th>Github Username</th>
-            <th>Number of commits</th>
-          </tr>
-        </thead>
+    <h3 class="title is-3 has-text-centered">Repo Name: {{repoName}}</h3>
+    <h5 class="subtitle is-5 has-text-centered">Owner: {{userName}}</h5>
+    <h2 v-if="totalCommits > 0" class = "title is-2 has-text-centered">{{totalCommits}}</h2>
+    <h2 v-if="contribError" class="title is-2 has-text-centered">Error. Check your repo options and try loading again!</h2>
 
-        <tfoot>
-          <tr v-for="contributor in contributors">
+    <div class="columns">
+      <div id="leaderboardTable" v-if="contributors.length > 0 && !contribError" class="column">
+        <table class="table is-bordered is-hoverable">
+          <thead>
+            <tr>
+              <th>Avatar</th>
+              <th>Github Username</th>
+              <th>Number of commits</th>
+            </tr>
+          </thead>
 
-            <td>
-              <figure class="image is-64x64">
-                <img :src="contributor.avatar_url">
-              </figure>
-            </td>
+          <tbody>
+            <tr v-for="contributor in contributors">
 
-            <td>{{contributor.login}}</td>
-            <td>{{contributor.contributions}}</td>
-          </tr>
-        </tfoot>
-      </table>
+              <td>
+                <figure class="image is-64x64">
+                  <img :src="contributor.avatar_url">
+                </figure>
+              </td>
+
+              <td>{{contributor.login}}</td>
+              <td>{{contributor.contributions}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="showPullRequests && !pullRequestsError" id="pullRequests" class="column">
+        <table v-if="pullRequests.length >0" class="table is-bordered is-hoverable">
+          <thead>
+            <tr>
+              <th>Avatar</th>
+              <th>GitHub Username</th>
+              <th>PR title</th>
+              <th>Closed at</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr v-for="pullRequest in pullRequests">
+
+              <td>
+                <figure class="image is-64x64">
+                  <img :src="pullRequest.user.avatar_url">
+                </figure>
+              </td>
+              <td>{{pullRequest.user.login}}</td>
+              <td>
+                {{pullRequest.title}}
+              </td>
+              <td>{{pullRequest.closed_at || "-"}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <h4 v-if="!(pullRequests.length > 0)" class="title is-4">No pull requests in this repo yet</h4>
+      </div>
     </div>
   </div>
 
@@ -60,19 +101,51 @@
     let url = "https://api.github.com/"
     let app = new Vue({
       el: "#app",
+      mounted() {
+        setInterval(this.getRepoContributors, 60000),
+        setInterval(this.getPullRequests, 60000)
+      },
       data() {
         return {
-          repoName: "vue_todo_app",
+          repoName: "contrib_leaderboard",
           userName: "akhil1508",
           contributors: [],
-          removeRepoOption: false
+          removeRepoOption: false,
+          contribError: false,
+          showPullRequests: false,
+          pullRequests: [],
+          pullRequestsError: false,
+          contributorStatistics : [],
+          totalCommits: 0
         }
       },
       methods: {
         getRepoContributors() {
+          this.contribError = false
+          this.totalCommits = 0 
           axios.get(`${url}repos/${this.userName}/${this.repoName}/contributors`).then(res => {
             this.contributors = res['data']
-          }).catch(err => console.log(err))
+          }).catch(err => {
+            this.contributors = []
+            this.contribError = true
+          })
+
+          axios.get(`${url}repos/${this.userName}/${this.repoName}/stats/contributors`).then(res => {
+            this.contributorStatistics = res['data']
+            this.contributorStatistics.forEach(x => {
+              this.totalCommits += x.total
+            })
+          }).catch(err => {})
+        },
+        getPullRequests() {
+          this.showPullRequests = true
+          this.pullRequestsError = false
+          axios.get(`${url}repos/${this.userName}/${this.repoName}/pulls`).then(res => {
+            this.pullRequests = res['data']
+          }).catch(err => {
+            this.pullRequestsError = true
+            this.pullRequests = []
+          })
         }
       }
     })
