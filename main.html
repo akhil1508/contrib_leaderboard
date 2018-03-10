@@ -11,7 +11,7 @@
     <input v-model="userName" placeholder="Name of Owner">
     <button @click="getRepoContributors">Display Leaderboard</button>
     <div>
-      <table class = "table">
+      <table v-if="contributors.length > 0" class = "table is-bordered is-hoverable">
         <thead>
           <tr>
             <th>Github Username</th>
@@ -20,14 +20,12 @@
         </thead>
 
         <tfoot>
-          <tr>
-            
+          <tr v-for="contributor in contributors">
+            <td>{{contributor.login}}</td>
+            <td>{{contributor.contributions}}</td>
           </tr>
         </tfoot>
       </table>
-      <ul>
-        <li v-if="contributors.length > 0" v-for="contributor in contributors">{{contributor.login}} | {{contributor.contributions}}</li>
-      </ul>
     </div>
   </div>
 
