@@ -35,7 +35,7 @@
 
     <h3 class="title is-3 has-text-centered">Repo Name: {{repoName}}</h3>
     <h5 class="subtitle is-5 has-text-centered">Owner: {{userName}}</h5>
-    <h2 v-if="totalCommits > 0" class = "title is-2 has-text-centered">{{totalCommits}}</h2>
+    <h2 v-if="totalCommits > 0" class="title is-2 has-text-centered">{{totalCommits}}</h2>
     <h2 v-if="contribError" class="title is-2 has-text-centered">Error. Check your repo options and try loading again!</h2>
 
     <div class="columns">
@@ -103,7 +103,7 @@
       el: "#app",
       mounted() {
         setInterval(this.getRepoContributors, 60000),
-        setInterval(this.getPullRequests, 60000)
+          setInterval(this.getPullRequests, 60000)
       },
       data() {
         return {
@@ -115,16 +115,18 @@
           showPullRequests: false,
           pullRequests: [],
           pullRequestsError: false,
-          contributorStatistics : [],
+          contributorStatistics: [],
           totalCommits: 0
         }
       },
       methods: {
         getRepoContributors() {
           this.contribError = false
-          this.totalCommits = 0 
+          this.totalCommits = 0
           axios.get(`${url}repos/${this.userName}/${this.repoName}/contributors`).then(res => {
             this.contributors = res['data']
+            console.log(this.contributors[0].contributions)
+
           }).catch(err => {
             this.contributors = []
             this.contribError = true
