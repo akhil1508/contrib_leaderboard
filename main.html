@@ -1,19 +1,39 @@
 <head>
   <link rel="stylesheet" href="./main.css">
-  <link rel="stylesheet" href="./bulma.css">=
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <link rel="stylesheet" href="./bulma.css">
   <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 </head>
 
 <body>
-  <div id ="app">
-    <input v-model="repoName" placeholder="Name of Repository">
-    <input v-model="userName" placeholder="Name of Owner">
-    <button @click="getRepoContributors">Display Leaderboard</button>
-    <div>
-      <table v-if="contributors.length > 0" class = "table is-bordered is-hoverable">
+  <div id="app">
+    <div v-if="!removeRepoOption" id="repoForm">
+      <h3 class="title is-3 has-text-centered">Set Repo Options</h3>
+      <div class="field">
+        <label class="label">Repository Name:</label>
+        <input class="input" v-model="repoName" placeholder="Name of Repository">
+      </div>
+      <div class="field">
+        <label class="label">Owner Name:</label>
+        <input class="input" v-model="userName" placeholder="Name of Owner">
+      </div>
+    </div>
+    <div id="allTheButtons">
+      <button v-if="contributors.length > 0" @click="getRepoContributors" class="button">Refresh Leaderboard</button>
+      <button v-if="!contributors.length > 0" @click="getRepoContributors" class="button">Display Leaderboard</button>
+
+      <button v-if="!removeRepoOption && contributors.length > 0" @click="removeRepoOption = true" class="button">
+        Remove Repo options
+      </button>
+      <button v-if="removeRepoOption" @click="removeRepoOption = false" class="button">Show Repo Options</button>
+    </div>
+    <div id="leaderboardTable" v-if="contributors.length > 0">
+      <h3 class="title is-3 has-text-centered">{{repoName}}</h3>
+      <h5 class="subtitle is-5 has-text-centered">Owner: {{userName}}</h5>
+      <table class="table is-bordered is-hoverable">
         <thead>
           <tr>
+            <th>Avatar</th>
             <th>Github Username</th>
             <th>Number of commits</th>
           </tr>
@@ -21,6 +41,13 @@
 
         <tfoot>
           <tr v-for="contributor in contributors">
+
+            <td>
+              <figure class="image is-64x64">
+                <img :src="contributor.avatar_url">
+              </figure>
+            </td>
+
             <td>{{contributor.login}}</td>
             <td>{{contributor.contributions}}</td>
           </tr>
@@ -37,7 +64,8 @@
         return {
           repoName: "vue_todo_app",
           userName: "akhil1508",
-          contributors: []
+          contributors: [],
+          removeRepoOption: false
         }
       },
       methods: {
