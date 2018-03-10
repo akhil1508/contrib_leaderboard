@@ -1,0 +1,54 @@
+<head>
+  <link rel="stylesheet" href="./main.css">
+  <link rel="stylesheet" href="./bulma.css">=
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+</head>
+
+<body>
+  <div id ="app">
+    <input v-model="repoName" placeholder="Name of Repository">
+    <input v-model="userName" placeholder="Name of Owner">
+    <button @click="getRepoContributors">Display Leaderboard</button>
+    <div>
+      <table class = "table">
+        <thead>
+          <tr>
+            <th>Github Username</th>
+            <th>Number of commits</th>
+          </tr>
+        </thead>
+
+        <tfoot>
+          <tr>
+            
+          </tr>
+        </tfoot>
+      </table>
+      <ul>
+        <li v-if="contributors.length > 0" v-for="contributor in contributors">{{contributor.login}} | {{contributor.contributions}}</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    let url = "https://api.github.com/"
+    let app = new Vue({
+      el: "#app",
+      data() {
+        return {
+          repoName: "vue_todo_app",
+          userName: "akhil1508",
+          contributors: []
+        }
+      },
+      methods: {
+        getRepoContributors() {
+          axios.get(`${url}repos/${this.userName}/${this.repoName}/contributors`).then(res => {
+            this.contributors = res['data']
+          }).catch(err => console.log(err))
+        }
+      }
+    })
+  </script>
+</body>
