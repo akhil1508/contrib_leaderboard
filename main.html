@@ -39,8 +39,8 @@
     <h2 v-if="contribError" class="title is-2 has-text-centered">Error. Check your repo options and try loading again!</h2>
 
     <div class="columns">
-      <div id="leaderboardTable" v-if="contributors.length > 0 && !contribError" class="column">
-        <table class="table is-bordered is-hoverable">
+      <div id="leaderboardTableDiv" v-if="contributors.length > 0 && !contribError" class="column">
+        <table class="table is-bordered is-hoverable" id="leaderboardTable" >
           <thead>
             <tr>
               <th>Avatar</th>

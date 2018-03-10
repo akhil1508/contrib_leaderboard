@@ -2,11 +2,14 @@
   margin-top: 2%;
 }
 
-#leaderboardTable {
+#leaderboardTableDiv {
   margin-top: 2%;
   margin-left:10%;
 }
 
+table {
+  font-size: 28px;
+}
 #formAndButtons {
   margin: 0% 30% 0% 30%;
 }
